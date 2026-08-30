@@ -82,11 +82,11 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           {/* Star Balance Badge */}
-          <div className="bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-900 px-4 py-2 rounded-2xl flex items-center space-x-2 shadow-md transform hover:scale-105 transition-transform cursor-pointer">
+          <div className="bg-gradient-to-r from-amber-400 to-yellow-500 text-slate-900 px-4 py-2 rounded-2xl flex items-center space-x-2 shadow-md transform hover:scale-105 transition-transform cursor-pointer" title={`Spendable Stars: ${stats.starBalance ?? stats.totalStars} | Lifetime Earned: ${stats.lifetimeStarsEarned ?? stats.totalStars}`}>
             <Star className="w-6 h-6 fill-slate-900 animate-star-pulse" />
             <div className="flex flex-col">
-              <span className="text-xs uppercase font-black tracking-wider text-slate-800 leading-tight">Stars</span>
-              <span className="text-xl font-black leading-none">{stats.totalStars}</span>
+              <span className="text-[10px] uppercase font-black tracking-wider text-slate-800 leading-tight">Balance</span>
+              <span className="text-xl font-black leading-none">{stats.starBalance ?? stats.totalStars}</span>
             </div>
           </div>
 

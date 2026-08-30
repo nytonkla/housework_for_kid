@@ -11,7 +11,8 @@ export interface Chore {
   frequency: ChoreFrequency;
   aiPrompt: string; // Target image description for AI verification
   active: boolean;
-  category: 'cleaning' | 'organizing' | 'pet_care' | 'learning' | 'other';
+  category: 'cleaning' | 'organizing' | 'pet_care' | 'learning' | 'kitchen' | 'laundry' | 'family' | 'outdoor' | 'self_care' | 'other';
+  unlockLevel?: number; // Level required to unlock this chore (1 to 100)
 }
 
 export interface Submission {
@@ -26,7 +27,7 @@ export interface Submission {
   aiAnalysisReason: string; // e.g. "Clean plates and glasses detected beside sink"
   starsEarned: number;
   parentNote?: string;
-  isManualAdjustment?: boolean; // Flag for Dad manual star adjustments
+  isManualAdjustment?: boolean; // Flag for Dad manual star adjustments or reward claims
 }
 
 export interface Reward {
@@ -50,11 +51,15 @@ export interface Redemption {
 }
 
 export interface UserStats {
-  totalStars: number;
+  totalStars: number; // Spendable star balance (kept for backwards compatibility)
+  starBalance: number; // Spendable star balance (Lifetime Earned minus stars spent on rewards)
+  lifetimeStarsEarned: number; // Total stars ever earned from completed chores & Dad bonuses (NEVER decreases!)
   currentStreak: number;
   lastCompletedDate: string | null;
-  level: number;
-  levelTitle: string;
+  level: number; // Current Level (1 to 100) calculated from lifetimeStarsEarned
+  levelTitle: string; // Current Level Status Title (e.g. "Tidy Sprout I", "Helper-in-Training II")
+  tierIcon?: string; // Current Tier Emoji (e.g. 🌱, 🧽, 🧭, 🛡️, 🏆)
+  motivationPhrase?: string;
 }
 
 export interface AppSettings {
@@ -63,4 +68,6 @@ export interface AppSettings {
   soundEnabled: boolean;
   aiAutoApproveThreshold: number; // default 0.95 (95%)
   kidName: string;
+  levelCurveBase: number; // default 0.3
+  levelCurvePower: number; // default 1.5
 }

@@ -25,7 +25,8 @@ import {
   X,
   Wifi,
   Loader2,
-  Maximize2
+  Maximize2,
+  Trophy
 } from 'lucide-react';
 
 interface ParentDashboardProps {
@@ -470,7 +471,9 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                       <span className="text-3xl p-3 bg-purple-50 rounded-2xl border border-purple-100">{chore.icon}</span>
                       <div>
                         <h4 className="font-extrabold text-slate-800 text-base">{chore.title}</h4>
-                        <p className="text-xs text-purple-600 font-bold">⭐ {chore.starReward} Stars Reward</p>
+                        <p className="text-xs text-purple-600 font-bold">
+                          ⭐ {chore.starReward} Stars • Unlocks at Level {chore.unlockLevel || 1}
+                        </p>
                       </div>
                     </div>
 
@@ -689,6 +692,56 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
               </div>
             </div>
 
+            {/* Level Curve Algorithm Tuning */}
+            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4">
+              <h4 className="font-extrabold text-slate-800 flex items-center gap-2 text-base">
+                <Trophy className="w-5 h-5 text-indigo-600" />
+                <span>Level Curve Progression Tuning (100 Levels)</span>
+              </h4>
+              <p className="text-xs text-slate-500 leading-relaxed">
+                Formula: <code className="bg-slate-200 px-2 py-0.5 rounded font-mono text-purple-700 font-bold">Stars = ROUND(Base × (Level - 1)^Power)</code>.
+                Early levels come quickly for fast encouragement, while higher levels represent genuine long-term independence (~11,853 total stars to Level 100).
+              </p>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Base Multiplier (Default: 0.3)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.05"
+                    value={settings.levelCurveBase || 0.3}
+                    onChange={(e) => {
+                      const val = Math.max(0.01, Number(e.target.value));
+                      const updated = { ...settings, levelCurveBase: val };
+                      onUpdateSettings(updated);
+                      storage.saveSettings(updated);
+                    }}
+                    className="w-full px-4 py-2.5 border border-slate-300 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">
+                    Power Exponent (Default: 1.5)
+                  </label>
+                  <input
+                    type="number"
+                    step="0.1"
+                    value={settings.levelCurvePower || 1.5}
+                    onChange={(e) => {
+                      const val = Math.max(1.0, Number(e.target.value));
+                      const updated = { ...settings, levelCurvePower: val };
+                      onUpdateSettings(updated);
+                      storage.saveSettings(updated);
+                    }}
+                    className="w-full px-4 py-2.5 border border-slate-300 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                  />
+                </div>
+              </div>
+            </div>
+
             {/* Gemini API Key Configuration */}
             <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4">
               <div className="flex flex-wrap items-center justify-between gap-2">
@@ -817,7 +870,7 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-3 gap-3">
                 <div>
                   <label className="text-xs font-bold text-slate-700 block mb-1">Icon / Emoji</label>
                   <input
@@ -836,8 +889,21 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                     type="number"
                     required
                     min={1}
-                    value={editingChore.starReward || 10}
+                    value={editingChore.starReward || 5}
                     onChange={(e) => setEditingChore({ ...editingChore, starReward: Number(e.target.value) })}
+                    className="w-full px-4 py-3 border border-slate-300 rounded-2xl text-sm font-bold text-center"
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-slate-700 block mb-1">Unlock Level</label>
+                  <input
+                    type="number"
+                    required
+                    min={1}
+                    max={100}
+                    value={editingChore.unlockLevel || 1}
+                    onChange={(e) => setEditingChore({ ...editingChore, unlockLevel: Math.max(1, Number(e.target.value)) })}
                     className="w-full px-4 py-3 border border-slate-300 rounded-2xl text-sm font-bold text-center"
                   />
                 </div>

@@ -18,8 +18,10 @@ export const RewardMarketplace: React.FC<RewardMarketplaceProps> = ({
   const [claimedRewardId, setClaimedRewardId] = useState<string | null>(null);
   const activeRewards = rewards.filter((r) => r.active);
 
+  const spendableStars = stats.starBalance ?? stats.totalStars;
+
   const handleClaim = (reward: Reward) => {
-    if (stats.totalStars < reward.costInStars) {
+    if (spendableStars < reward.costInStars) {
       soundManager.playError();
       return;
     }
@@ -53,7 +55,10 @@ export const RewardMarketplace: React.FC<RewardMarketplaceProps> = ({
             Exchange Stars for Rewards!
           </h2>
           <p className="text-amber-100 text-sm font-medium">
-            You currently have <strong className="text-white text-lg font-black">{stats.totalStars} ⭐</strong> saved up!
+            Spendable Balance: <strong className="text-white text-lg font-black">{spendableStars} ⭐</strong>
+            <span className="text-xs text-amber-200 block font-normal pt-0.5">
+              (Lifetime Earned: ⭐ {stats.lifetimeStarsEarned ?? stats.totalStars} — spending stars never reduces your Level!)
+            </span>
           </p>
         </div>
       </div>
@@ -61,7 +66,7 @@ export const RewardMarketplace: React.FC<RewardMarketplaceProps> = ({
       {/* Rewards Catalog */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {activeRewards.map((reward) => {
-          const canAfford = stats.totalStars >= reward.costInStars;
+          const canAfford = spendableStars >= reward.costInStars;
           const isJustClaimed = claimedRewardId === reward.id;
 
           return (
@@ -113,7 +118,7 @@ export const RewardMarketplace: React.FC<RewardMarketplaceProps> = ({
                     className="w-full py-3.5 bg-slate-100 text-slate-400 font-bold text-sm rounded-2xl flex items-center justify-center space-x-2 cursor-not-allowed border border-slate-200"
                   >
                     <Lock className="w-4 h-4 text-slate-400" />
-                    <span>Need {reward.costInStars - stats.totalStars} More Stars</span>
+                    <span>Need {reward.costInStars - spendableStars} More Stars</span>
                   </button>
                 )}
               </div>
