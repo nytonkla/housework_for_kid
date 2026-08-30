@@ -4,33 +4,50 @@
 
 ---
 
-## 🚀 Quick Setup Guide for Dads (3-Minute Setup)
+## ⚡ 3 Ways for Dads to Get Started (From Easiest to Advanced)
 
-### Step 1: Run or Deploy the App
-To run locally on your home Wi-Fi network:
-```bash
-# 1. Install dependencies
-npm install
+### 🥇 Option 1: Direct 1-Tap iPad Setup (Zero Code / Zero Install!)
+> **Best for 99% of Dads!** No computer, terminal, or Node.js required.
 
-# 2. Start dev server (accessible on local network)
-npm run dev
-```
-*(Or deploy to Vercel, Netlify, or GitHub Pages for free instant web access!)*
-
----
-
-### Step 2: Install on iPad Home Screen (1-Tap App Access)
-Give your kid a 1-tap app experience directly from her iPad screen with **zero browser address bars**:
-1. Open the web app link in **Safari on iPad**.
+1. Open this live app link in **Safari on your iPad**:
+   👉 **`https://nytonkla.github.io/housework_for_kid/`**
 2. Tap Safari's **Share icon** (square with upward arrow).
 3. Scroll down and tap **"Add to Home Screen"**.
 4. Tap **Add**. 
 
-*The **Housework Hero** app icon will appear on her iPad Home Screen right alongside her game apps!*
+*The **Housework Hero** app icon is now live on her iPad Home Screen! Your kid can tap it anytime to launch directly in full screen.*
 
 ---
 
-### Step 3: (Optional) Connect Free Google Gemini AI Key
+### 🥈 Option 2: 1-Click Free Hosting on Vercel (Your Own Private Link)
+> **Best if you want your own private web link with 1 click!**
+
+Click the button below to deploy your own private copy for free on Vercel in 30 seconds:
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Fnytonkla%2Fhousework_for_kid)
+
+1. Log in with your GitHub account.
+2. Click **Deploy**.
+3. Open your generated Vercel link on your iPad and tap **"Add to Home Screen"**!
+
+---
+
+### 🥉 Option 3: Local Developer Setup (For Tech-Savvy Dads)
+> **For dads who want to run locally on home Wi-Fi or customize the code.**
+
+```bash
+# 1. Clone repository
+git clone https://github.com/nytonkla/housework_for_kid.git
+cd housework_for_kid
+
+# 2. Install dependencies & start server
+npm install
+npm run dev
+```
+
+---
+
+## 🔑 1-Minute Gemini AI Key Setup & Testing (For Dads)
 By default, **Housework Hero** works **100% offline out-of-the-box** using smart local AI verification. 
 
 If you want online multimodal AI vision verification using Google's `gemini-3.6-flash`:
@@ -45,28 +62,19 @@ If you want online multimodal AI vision verification using Google's `gemini-3.6-
 ## ✨ Features Overview
 
 ### 👧 Kid Mode (Normal View - 95% of Usage)
-- **Visual Chore Dashboard**: Touch-friendly cards (Dishwasher, Bed Making, Folding Laundry, Plant Watering, Pet Feeding, Reading).
+- **100-Level Growth Curve**: Non-linear 100-level progression system (Tidy Sprout 🌱, Helper-in-Training 🧽, Chore Scout 🧭, Task Ranger 🏹, Home Guardian 🛡️, Chore Knight ⚔️, House Captain ⚓, Domestic Strategist 🧠, Household Sage 📜, Home Champion 🏆).
+- **43 Age-Sequenced Chores**: Age-appropriate chores that unlock automatically as level increases.
 - **1-Tap Photo Check-In**: iPad camera opens directly -> Snap photo proof.
 - **Instant Gamification**: Confetti explosions, sound effects, level progress meter, and star payouts when AI confidence is ≥ 95%.
-- **Reward Marketplace**: Claim customizable rewards (Gaming time, Ice Cream, Lego sets, Bedtime extensions).
-- **Work-Done History Stream**: Shows all past check-ins, status updates, and Dad's notes.
+- **Reward Marketplace**: Claim customizable rewards without reducing Level!
 
 ### 👨 Parent Admin Mode (PIN-Protected)
 - **4-Digit Security PIN**: Default PIN `1234` (customizable in settings).
-- **Photo Submission Queue**: Click any photo thumbnail to inspect in full-screen modal with AI confidence score and analysis reasons. 1-tap **Approve** or **Ask to Retry**.
-- **Chore & Reward Management (CRUD)**: Easily add/edit chores, star rewards, and expected AI visual targets.
-- **Star Balance Adjuster**: Manually add or subtract stars with a mandatory **Reason note** that logs directly into your kid's work-done history log.
+- **Editable Kid Profile**: Update kid's name anytime.
+- **Photo Submission Queue**: Inspect submitted photos in full-screen modal with AI confidence score and analysis reasons. 1-tap **Approve** or **Ask to Retry**.
+- **Star Balance Adjuster & Data Resets**: Add/subtract stars with required notes, reset score to 0, or clear history log.
+- **Level Curve Progression Tuning**: Adjust `Base` and `Power` with live preview & 1-click recalculation.
 - **1-Click Share & Presets**: Export or import `.json` configuration presets to share chore lists with other dads!
-
----
-
-## 🛠️ Tech Stack & Security
-- **Frontend**: React 19 + TypeScript + Vite
-- **Styling**: Tailwind CSS v4 + Lucide Icons
-- **AI Verification**: Google GenAI SDK (`gemini-3.6-flash`) + Smart Local Offline Fallback
-- **Animations & Sound**: Canvas Confetti + Web Audio API Synthesizer (Zero MP3 asset dependency!)
-- **PWA Capabilities**: Fullscreen Apple mobile web app manifest & standalone support.
-- **Security**: Zero hardcoded credentials or API keys. 100% local browser storage persistence.
 
 ---
 
