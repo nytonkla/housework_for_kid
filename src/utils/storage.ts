@@ -702,6 +702,39 @@ export const storage = {
     return stats;
   },
 
+  recalculateLevel(overrideSettings?: { base?: number; power?: number }): UserStats {
+    const stats = this.getStats();
+    const settings = this.getSettings();
+    const base = overrideSettings?.base ?? settings.levelCurveBase ?? 0.3;
+    const power = overrideSettings?.power ?? settings.levelCurvePower ?? 1.5;
+
+    const levelInfo = calculateLevelFromLifetimeStars(stats.lifetimeStarsEarned || 0, { base, power });
+
+    stats.level = levelInfo.level;
+    stats.levelTitle = levelInfo.statusName;
+    stats.tierIcon = levelInfo.tierIcon;
+    stats.motivationPhrase = levelInfo.motivationPhrase;
+
+    this.saveStats(stats);
+    return stats;
+  },
+
+  resetStats(): UserStats {
+    const stats: UserStats = {
+      totalStars: 0,
+      starBalance: 0,
+      lifetimeStarsEarned: 0,
+      currentStreak: 0,
+      lastCompletedDate: null,
+      level: 1,
+      levelTitle: 'Tidy Sprout I',
+      tierIcon: '🌱',
+      motivationPhrase: 'Every big helper starts with one small step.',
+    };
+    this.saveStats(stats);
+    return stats;
+  },
+
   getSettings(): AppSettings {
     const data = localStorage.getItem(KEYS.SETTINGS);
     if (!data) return INITIAL_SETTINGS;

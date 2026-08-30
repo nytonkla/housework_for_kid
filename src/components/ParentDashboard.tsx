@@ -3,6 +3,7 @@ import { Chore, Reward, Submission, UserStats, AppSettings } from '../types';
 import { storage } from '../utils/storage';
 import { soundManager } from '../utils/audio';
 import { testGeminiApiKey } from '../utils/aiVision';
+import { calculateLevelFromLifetimeStars } from '../utils/levelCurve';
 import {
   CheckCircle2,
   XCircle,
@@ -26,7 +27,10 @@ import {
   Wifi,
   Loader2,
   Maximize2,
-  Trophy
+  Trophy,
+  RotateCcw,
+  RefreshCw,
+  User,
 } from 'lucide-react';
 
 interface ParentDashboardProps {
@@ -102,6 +106,11 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
   const [manualAdjustmentReason, setManualAdjustmentReason] = useState<string>('');
   const [shareNotice, setShareNotice] = useState<string | null>(null);
 
+  // Level Curve tuning states & notice
+  const [tempBase, setTempBase] = useState<number>(settings.levelCurveBase || 0.3);
+  const [tempPower, setTempPower] = useState<number>(settings.levelCurvePower || 1.5);
+  const [tuningNotice, setTuningNotice] = useState<string | null>(null);
+
   const handleManualStarAdjustment = (amount: number) => {
     if (!manualAdjustmentReason || manualAdjustmentReason.trim().length === 0) {
       soundManager.playError();
@@ -130,6 +139,71 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
     storage.addSubmission(record);
     onUpdateSubmissions(storage.getSubmissions());
     setManualAdjustmentReason('');
+  };
+
+  // Reset Kid Score Handler (Request 1)
+  const handleResetKidScore = () => {
+    if (window.confirm(`Are you sure you want to reset ${settings.kidName || 'your kid'}'s star balance and lifetime stars to 0?`)) {
+      soundManager.playPop();
+      const reset = storage.resetStats();
+      onUpdateStats(reset);
+      setTuningNotice(`Kid star score has been reset to 0!`);
+      setTimeout(() => setTuningNotice(null), 3000);
+    }
+  };
+
+  // Clear History Handler (Request 2)
+  const handleClearHistory = () => {
+    if (window.confirm("Are you sure you want to clear all work-done history check-ins and reward claim logs?")) {
+      soundManager.playPop();
+      storage.saveSubmissions([]);
+      storage.saveRedemptions([]);
+      onUpdateSubmissions([]);
+      setTuningNotice("All work-done history check-ins have been cleared!");
+      setTimeout(() => setTuningNotice(null), 3000);
+    }
+  };
+
+  // Commit Level Curve Tuning Handler (Request 4)
+  const handleCommitLevelCurveTuning = () => {
+    soundManager.playFanfare();
+    const updatedSettings = {
+      ...settings,
+      levelCurveBase: tempBase,
+      levelCurvePower: tempPower,
+    };
+    onUpdateSettings(updatedSettings);
+    storage.saveSettings(updatedSettings);
+
+    const recalculatedStats = storage.recalculateLevel({ base: tempBase, power: tempPower });
+    onUpdateStats(recalculatedStats);
+
+    setTuningNotice(`Level Curve updated! Recalculated level: Level ${recalculatedStats.level} (${recalculatedStats.levelTitle})`);
+    setTimeout(() => setTuningNotice(null), 4000);
+  };
+
+  // Reset Level Curve Tuning Handler (Request 5)
+  const handleResetLevelCurveTuning = () => {
+    soundManager.playPop();
+    const defaultBase = 0.3;
+    const defaultPower = 1.5;
+
+    setTempBase(defaultBase);
+    setTempPower(defaultPower);
+
+    const updatedSettings = {
+      ...settings,
+      levelCurveBase: defaultBase,
+      levelCurvePower: defaultPower,
+    };
+    onUpdateSettings(updatedSettings);
+    storage.saveSettings(updatedSettings);
+
+    const recalculatedStats = storage.recalculateLevel({ base: defaultBase, power: defaultPower });
+    onUpdateStats(recalculatedStats);
+
+    setTuningNotice(`Restored Level Curve to original defaults (Base: 0.3, Power: 1.5)! Recalculated level: Level ${recalculatedStats.level}`);
+    setTimeout(() => setTuningNotice(null), 4000);
   };
 
   // Submission Approval Action
@@ -644,13 +718,49 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
           <div className="space-y-6 max-w-2xl">
             <h3 className="text-xl font-extrabold text-slate-800">App & AI Verification Settings</h3>
 
-            {/* Quick Star Adjuster */}
+            {tuningNotice && (
+              <div className="p-4 bg-purple-600 text-white font-extrabold rounded-2xl text-xs shadow-md animate-fade-in flex items-center justify-between">
+                <span>{tuningNotice}</span>
+                <button onClick={() => setTuningNotice(null)} className="p-1 hover:bg-white/20 rounded-lg">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            )}
+
+            {/* Kid Profile & Name Settings (Request 3) */}
+            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4">
+              <h4 className="font-extrabold text-slate-800 flex items-center gap-2 text-base">
+                <User className="w-5 h-5 text-purple-600" />
+                <span>Kid's Profile & Name</span>
+              </h4>
+              <p className="text-xs text-slate-500">
+                Customize your kid's display name shown on the header greeting and dashboard.
+              </p>
+              <div>
+                <label className="text-xs font-bold text-slate-700 block mb-1">Kid's Display Name</label>
+                <input
+                  type="text"
+                  value={settings.kidName || ''}
+                  onChange={(e) => {
+                    const updated = { ...settings, kidName: e.target.value };
+                    onUpdateSettings(updated);
+                    storage.saveSettings(updated);
+                  }}
+                  placeholder="e.g. Nalin or Hero Kid"
+                  className="w-full px-4 py-2.5 border border-slate-300 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-purple-500 outline-none"
+                />
+              </div>
+            </div>
+
+            {/* Quick Star Adjuster & Data Maintenance (Requests 1 & 2) */}
             <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4">
               <h4 className="font-extrabold text-slate-800 flex items-center gap-2 text-base">
                 <Star className="w-5 h-5 text-amber-500 fill-amber-500" />
-                <span>Adjust Kid's Star Balance</span>
+                <span>Adjust Kid's Star Balance & Reset Controls</span>
               </h4>
-              <p className="text-xs text-slate-500">Current Balance: <strong className="text-purple-600 text-base">{stats.totalStars} Stars</strong></p>
+              <p className="text-xs text-slate-500">
+                Spendable Balance: <strong className="text-purple-600 font-extrabold text-base">{stats.starBalance ?? stats.totalStars} Stars</strong> • Lifetime Earned: <strong className="text-emerald-600 font-extrabold text-base">{stats.lifetimeStarsEarned ?? stats.totalStars} Stars</strong>
+              </p>
 
               <div>
                 <label className="text-xs font-bold text-slate-700 block mb-1">
@@ -690,57 +800,112 @@ export const ParentDashboard: React.FC<ParentDashboardProps> = ({
                   Add +{manualStarAmount} Stars
                 </button>
               </div>
-            </div>
 
-            {/* Level Curve Algorithm Tuning */}
-            <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4">
-              <h4 className="font-extrabold text-slate-800 flex items-center gap-2 text-base">
-                <Trophy className="w-5 h-5 text-indigo-600" />
-                <span>Level Curve Progression Tuning (100 Levels)</span>
-              </h4>
-              <p className="text-xs text-slate-500 leading-relaxed">
-                Formula: <code className="bg-slate-200 px-2 py-0.5 rounded font-mono text-purple-700 font-bold">Stars = ROUND(Base × (Level - 1)^Power)</code>.
-                Early levels come quickly for fast encouragement, while higher levels represent genuine long-term independence (~11,853 total stars to Level 100).
-              </p>
+              {/* Data Reset Action Buttons (Requests 1 & 2) */}
+              <div className="pt-4 border-t border-slate-200 flex flex-wrap gap-3">
+                <button
+                  onClick={handleResetKidScore}
+                  className="px-4 py-2.5 bg-red-600 hover:bg-red-700 text-white font-extrabold text-xs rounded-xl shadow-sm flex items-center space-x-1.5 transition-colors"
+                >
+                  <RotateCcw className="w-4 h-4" />
+                  <span>Reset Kid's Star Score to 0</span>
+                </button>
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">
-                    Base Multiplier (Default: 0.3)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.05"
-                    value={settings.levelCurveBase || 0.3}
-                    onChange={(e) => {
-                      const val = Math.max(0.01, Number(e.target.value));
-                      const updated = { ...settings, levelCurveBase: val };
-                      onUpdateSettings(updated);
-                      storage.saveSettings(updated);
-                    }}
-                    className="w-full px-4 py-2.5 border border-slate-300 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
-                  />
-                </div>
-
-                <div>
-                  <label className="text-xs font-bold text-slate-700 block mb-1">
-                    Power Exponent (Default: 1.5)
-                  </label>
-                  <input
-                    type="number"
-                    step="0.1"
-                    value={settings.levelCurvePower || 1.5}
-                    onChange={(e) => {
-                      const val = Math.max(1.0, Number(e.target.value));
-                      const updated = { ...settings, levelCurvePower: val };
-                      onUpdateSettings(updated);
-                      storage.saveSettings(updated);
-                    }}
-                    className="w-full px-4 py-2.5 border border-slate-300 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
-                  />
-                </div>
+                <button
+                  onClick={handleClearHistory}
+                  className="px-4 py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-extrabold text-xs rounded-xl shadow-sm flex items-center space-x-1.5 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                  <span>Clear Work-Done History Log</span>
+                </button>
               </div>
             </div>
+
+            {/* Level Curve Algorithm Tuning (Requests 4 & 5) */}
+            {(() => {
+              const previewInfo = calculateLevelFromLifetimeStars(stats.lifetimeStarsEarned || 0, {
+                base: tempBase,
+                power: tempPower,
+              });
+
+              return (
+                <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4">
+                  <h4 className="font-extrabold text-slate-800 flex items-center gap-2 text-base">
+                    <Trophy className="w-5 h-5 text-indigo-600" />
+                    <span>Level Curve Progression Tuning (100 Levels)</span>
+                  </h4>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Formula: <code className="bg-slate-200 px-2 py-0.5 rounded font-mono text-purple-700 font-bold">Stars = ROUND(Base × (Level - 1)^Power)</code>.
+                    Early levels come quickly for fast encouragement, while higher levels represent genuine long-term independence (~11,853 total stars to Level 100).
+                  </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-1">
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1">
+                        Base Multiplier (Default: 0.3)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.05"
+                        value={tempBase}
+                        onChange={(e) => setTempBase(Math.max(0.01, Number(e.target.value)))}
+                        className="w-full px-4 py-2.5 border border-slate-300 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="text-xs font-bold text-slate-700 block mb-1">
+                        Power Exponent (Default: 1.5)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.1"
+                        value={tempPower}
+                        onChange={(e) => setTempPower(Math.max(1.0, Number(e.target.value)))}
+                        className="w-full px-4 py-2.5 border border-slate-300 rounded-2xl text-sm font-bold focus:ring-2 focus:ring-indigo-500 outline-none"
+                      />
+                    </div>
+                  </div>
+
+                  {/* Impact Explanation & Preview Box (Request 4) */}
+                  <div className="p-4 bg-indigo-50 border border-indigo-200 rounded-2xl text-xs space-y-2">
+                    <h5 className="font-extrabold text-indigo-900 flex items-center gap-1.5">
+                      <Info className="w-4 h-4 text-indigo-600" />
+                      <span>Level Curve Impact Explanation</span>
+                    </h5>
+                    <p className="text-indigo-800 leading-relaxed">
+                      Changing <strong>Base</strong> alters overall star requirements across all levels. Changing <strong>Power</strong> alters curve steepness (higher exponent makes upper levels require significantly more stars).
+                    </p>
+                    <div className="pt-1 flex flex-wrap items-center justify-between gap-2 border-t border-indigo-200/80 font-bold text-indigo-950">
+                      <span>Lifetime Stars: ⭐ {stats.lifetimeStarsEarned || 0}</span>
+                      <span>Current: Level {stats.level}</span>
+                      <span className="bg-indigo-600 text-white px-2.5 py-1 rounded-xl text-[11px]">
+                        Recalculated Preview: Level {previewInfo.level} ({previewInfo.statusName})
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Tuning Buttons (Requests 4 & 5) */}
+                  <div className="flex flex-wrap gap-3 pt-2">
+                    <button
+                      onClick={handleCommitLevelCurveTuning}
+                      className="px-5 py-3 bg-indigo-600 hover:bg-indigo-700 text-white font-extrabold text-xs rounded-2xl shadow-md flex items-center space-x-2 transition-colors"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>Commit & Recalculate Levels</span>
+                    </button>
+
+                    <button
+                      onClick={handleResetLevelCurveTuning}
+                      className="px-4 py-3 bg-slate-200 hover:bg-slate-300 text-slate-800 font-extrabold text-xs rounded-2xl flex items-center space-x-1.5 transition-colors"
+                    >
+                      <RefreshCw className="w-4 h-4 text-slate-600" />
+                      <span>Reset to Default Curve (Base: 0.3, Power: 1.5)</span>
+                    </button>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Gemini API Key Configuration */}
             <div className="bg-slate-50 p-6 rounded-3xl border border-slate-200 space-y-4">
